@@ -3,6 +3,7 @@ import json
 import os
 import time
 from urllib.parse import urljoin
+from datetime import datetime
 
 import requests
 from bs4 import BeautifulSoup
@@ -57,9 +58,10 @@ class BookScraper(Scraper):
 
     def scrape(self) -> list[dict]:
         results: list[dict] = []
+        failed_logs = [] 
 
         # Listing pages are under /catalogue/page-#.html
-        for page in range(1, 51):
+        for page in range(1, 2):
             listing_url = urljoin(self.base_url, f"catalogue/page-{page}.html")
             print(f"[LIST] page {page}/50: {listing_url}")
 
@@ -70,7 +72,30 @@ class BookScraper(Scraper):
 
             for i, book_url in enumerate(book_urls, start=1):
                 print(f"  [BOOK] page {page} book {i}/{len(book_urls)}")
-                results.append(self.get_product_info(book_url))
+                # print(book_url) # ahcomment
+                try: 
+                    results.append(self.get_product_info(book_url))
+
+                    log_entry = {
+                        "run_datetime": str(datetime.utcnow().isoformat()),
+                        "status": "Success",
+                        "url": book_url
+                    }
+                    log_path = os.path.join(config["RAW_DIRECTORY"], "failed_log.json")
+                    with open(log_path, "a", encoding="utf-8") as f:
+                        f.write(json.dumps(log_entry) + "\n")
+
+                except:
+                    print(f"  [BOOK] page {page} book {i}/{len(book_urls)} failed")
+                    
+                    log_entry = {
+                        "run_datetime": str(datetime.utcnow().isoformat()),
+                        "status": "failed",
+                        "url": book_url
+                    }
+                    log_path = os.path.join(config["RAW_DIRECTORY"], "failed_log.json")
+                    with open(log_path, "a", encoding="utf-8") as f:
+                        f.write(json.dumps(log_entry) + "\n")
 
         return results
 
