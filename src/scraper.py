@@ -54,14 +54,13 @@ class BookScraper(Scraper):
             except Exception as e:
                 last_err = e
                 time.sleep(1.5 * attempt)
-        raise last_err  # type: ignore[misc]
+        raise last_err  
 
     def scrape(self) -> list[dict]:
         results: list[dict] = []
         failed_logs = [] 
 
-        # Listing pages are under /catalogue/page-#.html
-        for page in range(1, 2):
+        for page in range(1, 51):
             listing_url = urljoin(self.base_url, f"catalogue/page-{page}.html")
             print(f"[LIST] page {page}/50: {listing_url}")
 
